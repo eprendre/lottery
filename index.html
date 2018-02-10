@@ -160,7 +160,8 @@
             return [0.1 * Math.random() + 0.01, -(0.1 * Math.random() + 0.01)];
         };
         var getKey = function(item){
-            return item.name + '-' + item.phone;
+            // return item.name + '-' + item.phone;
+            return item.name;
         };
         var createHTML = function(){
             var html = [ '<ul>' ];
@@ -179,16 +180,29 @@
             var list = canvas.getElementsByTagName('a');
             var color = '#' + ('00000' + Math.floor(Math.random() * 0xffffff)).slice(-6);
             var color = 'yellow';
+
+            var unchoosedMember = member.filter(function(item){
+                var key = getKey(item);
+                return !choosed[key];
+            });
+            if (count > unchoosedMember.length) {
+                count = unchoosedMember.length;
+            }
+
             for(var i = 0; i < count; i++){
                 do {
-                    var id = Math.ceil(Math.random() * total);
-                    if(member[id]){
-                        var key = getKey(member[id]);
+                    var id = Math.ceil(Math.random() * unchoosedMember.length) - 1;
+                    if(unchoosedMember[id]){
+                        var key = getKey(unchoosedMember[id]);
                     }
                 } while(choosed[key]);
                 choosed[key] = 1;
-                ret.push(member[id].name + '<br/>' + member[id].phone);
-                list[id].style.color = color;
+                // ret.push(member[id].name + '<br/>' + member[id].phone);
+                ret.push(unchoosedMember[id].name);
+                var position = member.findIndex(function(item) {
+                    return getKey(item) === key;
+                });
+                list[position].style.color = color;
             }
             localStorage.setItem('choosed', JSON.stringify(choosed));
             return ret;
@@ -204,7 +218,7 @@
                 selected: 30,
                 running: false,
                 btns: [
-                    30, 10, 5, 2, 1
+                    30, 10, 5, 3, 2, 1
                 ]
             },
             ready: function(){
@@ -232,7 +246,11 @@
                     if(this.running){
                         TagCanvas.SetSpeed('myCanvas', speed());
                         var ret = lottery(this.selected);
-                        $('#result').css('display', 'block').html('<span>' + ret.join('</span><span>') + '</span>');
+                        var msg = "奖池已抽完"
+                        if (ret.length > 0) {
+                            msg = ret.join('</span><span>');
+                        }
+                        $('#result').css('display', 'block').html('<span>' + msg + '</span>');
                         TagCanvas.Reload('myCanvas');
                         setTimeout(function(){
                             localStorage.setItem(new Date().toString(), JSON.stringify(ret));
